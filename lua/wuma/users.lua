@@ -216,7 +216,7 @@ function WUMA.GetUserGroups()
 	return groups
 end
 
-function WUMA.MenuCommand(ply, cmd, args)
+function WUMA.ShowWUMAMenu(ply, cmd, args)
 	WUMA.HasAccess(ply, function(bool) 
 		if bool then
 			ply:SendLua([[WUMA.GUI.Toggle()]])
@@ -225,9 +225,9 @@ function WUMA.MenuCommand(ply, cmd, args)
 		end
 	end)	
 end
-concommand.Add( "wuma_menu", WUMA.MenuCommand)
+concommand.Add( "wuma_menu", WUMA.ShowWUMAMenu)
 
-function WUMA.PersonalLoadoutCommand(ply, cmd, args)
+function WUMA.ShowPersonalLoadout(ply, cmd, args)
 	WUMA.HasAccess(ply, function(bool) 
 		if bool then
 			ply:SendLua([[WUMA.GUI.CreateLoadoutSelector()]])
@@ -236,10 +236,13 @@ function WUMA.PersonalLoadoutCommand(ply, cmd, args)
 		end
 	end, "wuma personalloadout")	
 end
-concommand.Add("wuma_loadout", WUMA.PersonalLoadoutCommand)
+concommand.Add("wuma_loadout", WUMA.ShowPersonalLoadout)
 
 function WUMA.UserChatCommand(user, text, public)
-	if (text == WUMA.PersonalLoadoutCommand:GetString()) then user:SendLua([[WUMA.GUI.CreateLoadoutSelector()]]); return "" end
+	if (text == WUMA.PersonalLoadoutCommand:GetString()) then 
+		user:SendLua([[WUMA.GUI.CreateLoadoutSelector()]])
+		return "" 
+	end
 end
 hook.Add("PlayerSay", "WUMAChatCommand", WUMA.UserChatCommand)
 
@@ -277,21 +280,6 @@ function WUMA.PlayerUsergroupChanged(user, old, new, source)
 	WUMA.RefreshGroupRestrictions(user,new)
 	WUMA.RefreshGroupLimits(user,new)
 	WUMA.RefreshLoadout(user,new)
-	
-	timer.Simple(2, function()
-		WUMA.HasAccess(user, function(bool) 
-			user:SetNWBool(WUMA.HasUserAccessNetworkBool, bool)
-			user:SendLua([[
-				WUMA.RequestFromServer("settings");
-				WUMA.RequestFromServer("inheritance");
-				WUMA.RequestFromServer("groups")
-		]])
-		end)
-		
-		WUMA.HasAccess(user, function(bool) 
-			user:SetNWBool( WUMA.HasUserPersonalLoadoutAccess, bool )
-		end, "wuma personalloadout")
-	end)	
 end
 hook.Add("CAMI.PlayerUsergroupChanged", "WUMAPlayerUsergroupChanged", WUMA.PlayerUsergroupChanged)
 
